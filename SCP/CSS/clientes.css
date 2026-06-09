@@ -1,0 +1,149 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f4f4f4;
+    padding: 30px;
+}
+
+/* Caixa principal onde fica todo o conteúdo */
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+}
+
+/* Espaçamento dos títulos */
+h1,
+h2 {
+    margin-bottom: 15px;
+}
+
+/* Formulário organizado em duas colunas */
+.form-cliente {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+/* Cada campo fica em formato vertical:
+       label em cima e input embaixo */
+.campo {
+    display: flex;
+    flex-direction: column;
+}
+
+.campo label {
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.campo input,
+.campo select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* O campo nome ocupa as duas colunas do formulário */
+.campo.nome {
+    grid-column: span 2;
+}
+
+/* Área onde ficam os botões do formulário */
+.acoes {
+    grid-column: span 2;
+    text-align: right;
+}
+
+/* Estilo base dos botões */
+button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Botão salvar/atualizar */
+.btn-salvar {
+    background: #007bff;
+    color: white;
+}
+
+/* Botão limpar */
+.btn-limpar {
+    background: #ddd;
+}
+
+/* Botão editar que aparece dentro da tabela */
+.btn-editar {
+    background: #ffc107;
+    color: #333;
+    padding: 6px 10px;
+    margin-right: 5px;
+}
+
+/* Botão excluir que aparece dentro da tabela */
+.btn-excluir {
+    background: #dc3545;
+    color: white;
+    padding: 6px 10px;
+}
+
+/* Botão cancelar edição.
+       Começa escondido e só aparece quando o usuário clica em editar. */
+.btn-cancelar-edicao {
+    background: #6c757d;
+    color: white;
+    display: none;
+}
+
+/* Área de mensagem de sucesso ou erro */
+.mensagem {
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.sucesso {
+    color: green;
+}
+
+.erro {
+    color: red;
+}
+
+/* Estilo da tabela */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: #007bff;
+    color: white;
+}
+
+th,
+td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+/* Ajuste para telas pequenas */
+@media (max-width: 700px) {
+    .form-cliente {
+        grid-template-columns: 1fr;
+    }
+
+    .campo.nome,
+    .acoes {
+        grid-column: span 1;
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+    }
+}

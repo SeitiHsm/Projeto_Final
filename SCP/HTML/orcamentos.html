@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="..//CSS/orcamentos.css">
+    <title>Orçamento</title>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="homepage.html">
+                <img src="https://cdn-icons-png.flaticon.com/512/3441/3441648.png" height="30" alt="">
+                HOME
+            </a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <h1>Cadastro de Orçamentos</h1>
+
+        <form id="formOrcamento">
+
+            <div class="caixa-total">
+                <h3>Valor Total do Orçamento</h3>
+                <span id="valorTotalOrcamento">R$ 0,00</span>
+            </div>
+
+            <div class="campo">
+                <label for="orcamentoId">Código</label>
+                <input type="number" id="orcamentoId" readonly>
+            </div>
+
+            <div class="campo">
+                <label for="clienteId">Cliente</label>
+
+                <select id="clienteId" required>
+                    <option value="">
+                        Selecione um cliente
+                    </option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label for="dataOrcamento">
+                    Data do Orçamento
+                </label>
+
+                <input type="date" id="dataOrcamento" required>
+            </div>
+
+            <div class="campo">
+                <label for="dataValidade">
+                    Data de Validade
+                </label>
+
+                <input type="date" id="dataValidade" required>
+            </div>
+
+        </form>
+
+        <h2>Itens do Orçamento</h2>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Descrição</th>
+                    <th>Quantidade</th>
+                    <th>Valor Unitário</th>
+                    <th>Total Item</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+
+            <tbody id="tabelaItens">
+
+                <tr>
+
+                    <td>
+                        <select class="produto-item">
+                            <option value="">
+                                Selecione
+                            </option>
+                        </select>
+                    </td>
+
+                    <td class="descricao-item">
+                        -
+                    </td>
+
+                    <td>
+                        <input type="number" class="quantidade-item" min="1" value="1">
+                    </td>
+
+                    <td class="valor-unitario">
+                        R$ 0,00
+                    </td>
+
+                    <td class="valor-total-item">
+                        R$ 0,00
+                    </td>
+
+                    <td class="coluna-acoes">
+
+                        <button type="button" class="btn-novo-item">
+                            add+
+                        </button>
+
+                        <button type="button" class="btn-excluir">
+                            Remover
+                        </button>
+
+                    </td>
+
+                </tr>
+
+            </tbody>
+
+        </table>
+
+        <div class="acoes">
+
+            <button type="button" id="btnSalvarOrcamento" class="btn-salvar">
+                Salvar Orçamento
+            </button>
+
+            <button type="button" id="btnCancelarEdicao" class="btn-cancelar" style="display:none;">
+                Cancelar Edição
+            </button>
+
+        </div>
+
+        <p id="mensagem" class="mensagem"></p>
+
+        <h2>Orçamentos Cadastrados</h2>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Cliente</th>
+                    <th>Data Orçamento</th>
+                    <th>Data Validade</th>
+                    <th>Valor Total</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+
+            <tbody id="tabelaOrcamentos">
+
+                <tr>
+                    <td colspan="6">
+                        Carregando orçamentos...
+                    </td>
+                </tr>
+
+            </tbody>
+
+        </table>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="..//JS/orcamentos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
