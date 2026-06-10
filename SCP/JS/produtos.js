@@ -9,6 +9,7 @@ const supabaseClient = supabase.createClient(
 const formProduto = document.getElementById("formProduto");
 const tabelaProdutos = document.getElementById("tabelaProdutos");
 const mensagem = document.getElementById("mensagem");
+const buscaProdutos = document.getElementById("buscaProdutos");
 
 const produtoIdInput = document.getElementById("produtoId");
 const categoriaIdInput = document.getElementById("categoriaId");
@@ -24,6 +25,17 @@ const btnCancelarEdicao = document.getElementById("btnCancelarEdicao");
 function mostrarMensagem(texto, tipo) {
   mensagem.textContent = texto;
   mensagem.className = "mensagem " + tipo;
+}
+
+function filtrarProdutos() {
+  if (!tabelaProdutos || !buscaProdutos) return;
+
+  const termo = buscaProdutos.value.toLowerCase().trim();
+
+  tabelaProdutos.querySelectorAll("tr").forEach((linha) => {
+    const textoLinha = linha.textContent.toLowerCase();
+    linha.style.display = textoLinha.includes(termo) ? "" : "none";
+  });
 }
 
 function formatarStatus(status) {
@@ -295,6 +307,10 @@ btnCancelarEdicao.addEventListener(
     cancelarEdicao();
   }
 );
+
+if (buscaProdutos) {
+  buscaProdutos.addEventListener("input", filtrarProdutos);
+}
 
 carregarCategorias();
 carregarProdutos();

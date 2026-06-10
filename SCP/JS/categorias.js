@@ -41,6 +41,7 @@ console.log(supabaseClient);
 const formCategoria = document.getElementById("formCategoria");
 const tabelaCategorias = document.getElementById("tabelaCategorias");
 const mensagem = document.getElementById("mensagem");
+const buscaCategorias = document.getElementById("buscaCategorias");
 
 const categoriaIdInput = document.getElementById("categoriaId");
 const descricaoCategoriaInput = document.getElementById("descricaoCategoria");
@@ -65,6 +66,17 @@ const btnCancelarEdicao = document.getElementById("btnCancelarEdicao");
 function mostrarMensagem(texto, tipo) {
   mensagem.textContent = texto;
   mensagem.className = "mensagem " + tipo;
+}
+
+function filtrarCategorias() {
+  if (!tabelaCategorias || !buscaCategorias) return;
+
+  const termo = buscaCategorias.value.toLowerCase().trim();
+
+  tabelaCategorias.querySelectorAll("tr").forEach((linha) => {
+    const textoLinha = linha.textContent.toLowerCase();
+    linha.style.display = textoLinha.includes(termo) ? "" : "none";
+  });
 }
 
 /*
@@ -528,6 +540,10 @@ formCategoria.addEventListener("submit", async function(evento) {
 btnCancelarEdicao.addEventListener("click", function() {
   cancelarEdicao();
 });
+
+if (buscaCategorias) {
+  buscaCategorias.addEventListener("input", filtrarCategorias);
+}
 
 /*
   ============================================

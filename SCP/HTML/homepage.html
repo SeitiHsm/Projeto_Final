@@ -11,6 +11,23 @@
 </head>
 
 <body>
+  <aside class="sidebar-visual" aria-label="Barra lateral decorativa">
+    <div>
+      <div class="sidebar-brand">
+        <img class="brand-image" src="../IMG/saberti.png" alt="Logo do curso SaberTI" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';">
+        <span class="brand-icon fallback-brand">ST</span>
+        <div>
+          <strong>SaberTI</strong>
+          <small>curso / painel</small>
+        </div>
+      </div>
+      <p class="sidebar-copy">Criador do Sistema: Enzo Seiti Hashimoto</p>
+      <p class="sidebar-copy">Orientador do Curso: Prof. Vitinho</p>
+    </div>
+
+    <a class="logout-link" href="login.html">Sair</a>
+  </aside>
+
   <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark">
     <div class="container-fluid">
       <a class="navbar-brand" href="#">
@@ -41,12 +58,33 @@
         </ul>
 
         <ul class="navbar-nav mb-2 mb-lg-0">
-          <li class="nav-item"> <a class="nav-link" href="login.html">Sair</a> </li>
+          <li class="nav-item">
+            <div class="profile-chip" aria-label="Perfil do usuário">
+              <span class="profile-icon">👤</span>
+              <span class="profile-text">
+                <strong id="nomeUsuarioLogado">Nome do usuário</strong>
+                <small id="emailUsuarioLogado">Perfil</small>
+              </span>
+            </div>
+          </li>
         </ul>
       </div>
     </div>
   </nav>
 
+  <main class="homepage-main">
+    <section class="hero-card">
+      <h2>Bem-Vindo ao SCP [Sistema de Controle de Produtos e Orçamentos]</h2>
+      <p>Esta área ficou mais organizada e visualmente mais agradável, mantendo a navegação clara e o estilo apenas decorativo.</p>
+    </section>
+
+    <section class="info-card">
+      <h3>Resumo da página</h3>
+      <p>Use essa região como espaço de destaque para apresentar novidades, status ou mensagens importantes da empresa.</p>
+    </section>
+  </main>
+
+  <script src="../JS/homepage.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 

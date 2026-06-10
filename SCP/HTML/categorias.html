@@ -6,19 +6,43 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="../CSS/categorias.css">
+    <link rel="stylesheet" href="../CSS/homepage.css">
     <title>Categorias</title>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark">
+  <aside class="sidebar-visual" aria-label="Barra lateral decorativa">
+    <div>
+      <div class="sidebar-brand">
+        <span class="brand-icon">ST</span>
+        <div>
+          <strong>SaberTI</strong>
+          <small>curso / painel</small>
+        </div>
+      </div>
+      <p class="sidebar-copy">Criador do Sistema: Enzo Seiti Hashimoto</p>
+      <p class="sidebar-copy">Orientador do Curso: Prof. Vitinho</p>
+    </div>
+  </aside>
+
+  <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark">
     <div class="container-fluid">
       <a class="navbar-brand" href="homepage.html">
         <img src="https://cdn-icons-png.flaticon.com/512/3441/3441648.png" height="30" alt="">
         HOME
       </a>
+      <div class="ms-auto d-flex align-items-center gap-2">
+        <div class="profile-chip" aria-label="Perfil do usuário">
+          <span class="profile-icon">👤</span>
+          <span class="profile-text">
+            <strong>Nome do usuário</strong>
+            <small>Perfil</small>
+          </span>
+        </div>
+      </div>
     </div>
   </nav>
 
-  <main class="container">
+  <main class="homepage-main container">
 
     <!-- Título da tela -->
     <h1>Cadastro de Categoria</h1>
@@ -85,8 +109,14 @@
          "Cliente excluído com sucesso" -->
     <p id="mensagem" class="mensagem"></p>
 
-    <!-- Título da listagem -->
-    <h2>Categorias Cadastradas</h2>
+    <div class="topo-lista">
+      <h2>Categorias Cadastradas</h2>
+
+      <div class="campo campo-busca">
+        <label for="buscaCategorias">Pesquisar</label>
+        <input type="search" id="buscaCategorias" placeholder="Digite código ou descrição...">
+      </div>
+    </div>
 
     <!-- Tabela onde os clientes serão exibidos -->
     <table>
