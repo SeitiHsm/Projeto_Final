@@ -234,6 +234,12 @@ async function carregarOrcamentos() {
       <td></td>
     `;
 
+    const btnVisualizar = document.createElement("button");
+    btnVisualizar.textContent = "Visualizar";
+    btnVisualizar.className = "btn-visualizar";
+
+    btnVisualizar.onclick = () => abrirVisualizacao(o);
+
     const btnEditar = document.createElement("button");
     btnEditar.textContent = "Editar";
     btnEditar.className = "btn-editar";
@@ -246,6 +252,7 @@ async function carregarOrcamentos() {
 
     btnExcluir.onclick = () => excluirOrcamento(o);
 
+    tr.querySelector("td:last-child").appendChild(btnVisualizar);
     tr.querySelector("td:last-child").appendChild(btnEditar);
     tr.querySelector("td:last-child").appendChild(btnExcluir);
 
@@ -375,6 +382,14 @@ function cancelarEdicao() {
 
   btnCancelarEdicao.style.display = "none";
   valorTotalOrcamento.textContent = "R$ 0,00";
+}
+
+// =====================
+// VISUALIZAR
+// =====================
+function abrirVisualizacao(orcamento) {
+  sessionStorage.setItem("orcamentoSelecionado", String(orcamento.orcamentoid));
+  window.location.href = "visualizacao_orcamento.html";
 }
 
 // =====================

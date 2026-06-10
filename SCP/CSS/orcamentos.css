@@ -76,6 +76,14 @@
       background: #ddd;
     }
 
+    /* Botão visualizar que aparece dentro da tabela */
+    .btn-visualizar {
+      background: #17a2b8;
+      color: white;
+      padding: 6px 10px;
+      margin-right: 5px;
+    }
+
     /* Botão editar que aparece dentro da tabela */
     .btn-editar {
       background: #ffc107;
@@ -128,6 +136,10 @@
       padding: 10px;
       border: 1px solid #ddd;
       text-align: left;
+    }
+
+    td:last-child {
+      white-space: nowrap;
     }
 
     /* Ajuste para telas pequenas */
