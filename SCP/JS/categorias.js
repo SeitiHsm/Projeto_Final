@@ -1,26 +1,6 @@
-/*
-  ============================================
-  CONFIGURAÇÃO DO SUPABASE
-  ============================================
-
-  Aqui configuramos a conexão do front-end com o Supabase.
-
-  Importante:
-  - SUPABASE_URL é a URL do seu projeto.
-  - SUPABASE_ANON_KEY é a chave pública.
-  - Nunca use service_role key no front-end.
-*/
-
 const SUPABASE_URL = "https://spfrgjhhisvwqvkdgfll.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_2-oeiECzfEJe5iKRjmc9Aw_nAq7Pzbp";
 
-
-/*
-  Cria o cliente de conexão com o Supabase.
-
-  A variável "supabase" vem da biblioteca que carregamos no HTML:
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-*/
 const supabaseClient = supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
@@ -29,19 +9,9 @@ const supabaseClient = supabase.createClient(
 console.log("Supabase conectado");
 console.log(supabaseClient);
 
-/*
-  ============================================
-  PEGANDO ELEMENTOS DO HTML
-  ============================================
-
-  Usamos document.getElementById para acessar elementos da tela.
-  Assim conseguimos ler valores, alterar textos e criar ações.
-*/
-
 const formCategoria = document.getElementById("formCategoria");
 const tabelaCategorias = document.getElementById("tabelaCategorias");
 const mensagem = document.getElementById("mensagem");
-const buscaCategorias = document.getElementById("buscaCategorias");
 
 const categoriaIdInput = document.getElementById("categoriaId");
 const descricaoCategoriaInput = document.getElementById("descricaoCategoria");
@@ -49,74 +19,16 @@ const descricaoCategoriaInput = document.getElementById("descricaoCategoria");
 const btnSalvar = document.getElementById("btnSalvar");
 const btnCancelarEdicao = document.getElementById("btnCancelarEdicao");
 
-/*
-  ============================================
-  FUNÇÃO PARA MOSTRAR MENSAGEM NA TELA
-  ============================================
-
-  Essa função recebe:
-  - texto: mensagem que será exibida.
-  - tipo: classe CSS aplicada na mensagem.
-
-  Exemplo:
-  mostrarMensagem("Cliente salvo com sucesso!", "sucesso");
-  mostrarMensagem("Erro ao salvar cliente.", "erro");
-*/
-
 function mostrarMensagem(texto, tipo) {
   mensagem.textContent = texto;
   mensagem.className = "mensagem " + tipo;
 }
 
-function filtrarCategorias() {
-  if (!tabelaCategorias || !buscaCategorias) return;
-
-  const termo = buscaCategorias.value.toLowerCase().trim();
-
-  tabelaCategorias.querySelectorAll("tr").forEach((linha) => {
-    const textoLinha = linha.textContent.toLowerCase();
-    linha.style.display = textoLinha.includes(termo) ? "" : "none";
-  });
-}
-
-/*
-  ============================================
-  CARREGAR Categorias
-  ============================================
-
-  Essa função busca as categorias no Supabase e monta as linhas da tabela.
-
-  Observação importante:
-  A tabela foi criada assim:
-
-  CREATE TABLE CATEGORIA (...)
-
-  Como não foram usadas aspas no nome da tabela,
-  no PostgreSQL o nome normalmente fica em minúsculo: categoria.
-
-  Por isso usamos:
-  .from("categoria")
-*/
-
 async function carregarCategorias() {
-  /*
-    Faz um SELECT na tabela categoria.
-
-    Estamos buscando as colunas:
-    - categoriaid
-    - descricao
-
-    E ordenando pela categoriaid em ordem crescente.
-  */
   const { data, error } = await supabaseClient
     .from("categorias")
     .select("categoriaid, descricao")
     .order("categoriaid", { ascending: true });
-
-  /*
-    Se der erro na consulta, mostramos uma mensagem na tabela
-    e também uma mensagem de erro acima da listagem.
-  */
   if (error) {
     tabelaCategorias.innerHTML = `
       <tr>
@@ -540,10 +452,6 @@ formCategoria.addEventListener("submit", async function(evento) {
 btnCancelarEdicao.addEventListener("click", function() {
   cancelarEdicao();
 });
-
-if (buscaCategorias) {
-  buscaCategorias.addEventListener("input", filtrarCategorias);
-}
 
 /*
   ============================================

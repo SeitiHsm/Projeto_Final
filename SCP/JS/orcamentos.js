@@ -18,7 +18,6 @@ const dataValidadeInput = document.getElementById("dataValidade");
 
 const tabelaItens = document.getElementById("tabelaItens");
 const tabelaOrcamentos = document.getElementById("tabelaOrcamentos");
-const buscaOrcamentos = document.getElementById("buscaOrcamentos");
 
 const valorTotalOrcamento = document.getElementById("valorTotalOrcamento");
 
@@ -35,17 +34,6 @@ let orcamentoEditando = null;
 function mostrarMensagem(texto, tipo) {
   mensagem.textContent = texto;
   mensagem.className = "mensagem " + tipo;
-}
-
-function filtrarOrcamentos() {
-  if (!tabelaOrcamentos || !buscaOrcamentos) return;
-
-  const termo = buscaOrcamentos.value.toLowerCase().trim();
-
-  tabelaOrcamentos.querySelectorAll("tr").forEach((linha) => {
-    const textoLinha = linha.textContent.toLowerCase();
-    linha.style.display = textoLinha.includes(termo) ? "" : "none";
-  });
 }
 
 // =====================
@@ -428,10 +416,6 @@ async function excluirOrcamento(o) {
 // =====================
 btnSalvarOrcamento.addEventListener("click", salvarOrcamento);
 btnCancelarEdicao.addEventListener("click", cancelarEdicao);
-
-if (buscaOrcamentos) {
-  buscaOrcamentos.addEventListener("input", filtrarOrcamentos);
-}
 
 // =====================
 // INIT

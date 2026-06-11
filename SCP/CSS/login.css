@@ -1,9 +1,9 @@
 .gradient-custom-2 {
 background: #fccb90;
 
-background: -webkit-linear-gradient(to right, #ee7724, #d8363a, #dd3675, #b44593);
+background: -webkit-linear-gradient(to right, #6124ee, #c036d8, #dd369d, #b44568);
 
-background: linear-gradient(to right, #ee7724, #d8363a, #dd3675, #b44593);
+background: linear-gradient(to right, #6124ee, #c036d8, #dd369d, #b44568);
 }
 
 @media (min-width: 768px) {

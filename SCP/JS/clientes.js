@@ -38,7 +38,6 @@ const supabaseClient = supabase.createClient(
 const formCliente = document.getElementById("formCliente");
 const tabelaClientes = document.getElementById("tabelaClientes");
 const mensagem = document.getElementById("mensagem");
-const buscaClientes = document.getElementById("buscaClientes");
 
 const clienteIdInput = document.getElementById("clienteId");
 const tipoClienteInput = document.getElementById("tipoCliente");
@@ -65,17 +64,6 @@ const btnCancelarEdicao = document.getElementById("btnCancelarEdicao");
 function mostrarMensagem(texto, tipo) {
   mensagem.textContent = texto;
   mensagem.className = "mensagem " + tipo;
-}
-
-function filtrarClientes() {
-  if (!tabelaClientes || !buscaClientes) return;
-
-  const termo = buscaClientes.value.toLowerCase().trim();
-
-  tabelaClientes.querySelectorAll("tr").forEach((linha) => {
-    const textoLinha = linha.textContent.toLowerCase();
-    linha.style.display = textoLinha.includes(termo) ? "" : "none";
-  });
 }
 
 /*
@@ -573,10 +561,6 @@ formCliente.addEventListener("submit", async function(evento) {
 btnCancelarEdicao.addEventListener("click", function() {
   cancelarEdicao();
 });
-
-if (buscaClientes) {
-  buscaClientes.addEventListener("input", filtrarClientes);
-}
 
 /*
   ============================================

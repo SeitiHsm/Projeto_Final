@@ -29,7 +29,7 @@
     <nav class="navbar navbar-expand-lg fixed-top navbar-dark bg-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="homepage.html">
-                <img src="https://cdn-icons-png.flaticon.com/512/3441/3441648.png" height="30" alt="">
+                <img src="https://cdn-icons-png.flaticon.com/512/3441/3441648.png" height="30" alt="" style="filter: brightness(0) saturate(100%) invert(72%) sepia(38%) saturate(421%) hue-rotate(206deg);">
                 HOME
             </a>
             <div class="ms-auto d-flex align-items-center gap-2">
@@ -48,11 +48,6 @@
         <h1>Cadastro de Orçamentos</h1>
 
         <form id="formOrcamento">
-
-            <div class="caixa-total">
-                <h3>Valor Total do Orçamento</h3>
-                <span id="valorTotalOrcamento">R$ 0,00</span>
-            </div>
 
             <div class="campo">
                 <label for="orcamentoId">Código</label>
@@ -148,6 +143,11 @@
 
         </table>
 
+        <div class="caixa-total">
+            <h3>Valor Total do Orçamento</h3>
+            <span id="valorTotalOrcamento">R$ 0,00</span>
+        </div>
+
         <div class="acoes">
 
             <button type="button" id="btnSalvarOrcamento" class="btn-salvar">
@@ -164,11 +164,6 @@
 
         <div class="topo-lista">
             <h2>Orçamentos Cadastrados</h2>
-
-            <div class="campo campo-busca">
-                <label for="buscaOrcamentos">Pesquisar</label>
-                <input type="search" id="buscaOrcamentos" placeholder="Digite código, cliente, data ou valor...">
-            </div>
         </div>
 
         <table>
