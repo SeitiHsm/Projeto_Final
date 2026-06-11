@@ -20,6 +20,11 @@ const statusProdutoInput = document.getElementById("statusProduto");
 
 const btnSalvar = document.getElementById("btnSalvar");
 const btnCancelarEdicao = document.getElementById("btnCancelarEdicao");
+const barraPesquisaProduto = document.getElementById("barraPesquisaProduto");
+const btnPesquisarProduto = document.getElementById("btnPesquisarProduto");
+const btnLimparPesquisaProduto = document.getElementById("btnLimparPesquisaProduto");
+
+let produtosCache = [];
 
 function mostrarMensagem(texto, tipo) {
   mensagem.textContent = texto;
@@ -30,6 +35,87 @@ function formatarStatus(status) {
   if (status === "A") return "Ativo";
   if (status === "I") return "Inativo";
   return "";
+}
+
+function normalizarTexto(texto) {
+  return String(texto ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function renderizarProdutos(lista) {
+  tabelaProdutos.innerHTML = "";
+
+  if (lista.length === 0) {
+    tabelaProdutos.innerHTML = `
+      <tr>
+        <td colspan="8">Nenhum produto encontrado.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  lista.forEach(function(produto) {
+    const linha = document.createElement("tr");
+
+    linha.innerHTML = `
+      <td>${produto.produtoid}</td>
+      <td>${produto.categorias?.descricao ?? ""}</td>
+      <td>${produto.descricao}</td>
+      <td>${produto.observacao ?? ""}</td>
+      <td>R$ ${Number(produto.valor_venda).toFixed(2)}</td>
+      <td>${produto.data_cadastro}</td>
+      <td>${formatarStatus(produto.status)}</td>
+      <td class="coluna-acoes"></td>
+    `;
+
+    const botaoEditar = document.createElement("button");
+    botaoEditar.textContent = "Editar";
+    botaoEditar.className = "btn-editar";
+    botaoEditar.type = "button";
+    botaoEditar.addEventListener("click", function() {
+      prepararEdicao(produto);
+    });
+
+    const botaoExcluir = document.createElement("button");
+    botaoExcluir.textContent = "Excluir";
+    botaoExcluir.className = "btn-excluir";
+    botaoExcluir.type = "button";
+    botaoExcluir.addEventListener("click", function() {
+      excluirProduto(produto);
+    });
+
+    linha.querySelector(".coluna-acoes").appendChild(botaoEditar);
+    linha.querySelector(".coluna-acoes").appendChild(botaoExcluir);
+
+    tabelaProdutos.appendChild(linha);
+  });
+}
+
+function aplicarFiltroProdutos() {
+  const termo = normalizarTexto(barraPesquisaProduto?.value || "");
+
+  if (!termo) {
+    renderizarProdutos(produtosCache);
+    return;
+  }
+
+  const filtrados = produtosCache.filter(function(produto) {
+    return [
+      produto.produtoid,
+      produto.categorias?.descricao,
+      produto.descricao,
+      produto.observacao,
+      Number(produto.valor_venda).toFixed(2),
+      produto.data_cadastro,
+      formatarStatus(produto.status)
+    ].some(function(valor) {
+      return normalizarTexto(valor).includes(termo);
+    });
+  });
+
+  renderizarProdutos(filtrados);
 }
 
 async function carregarCategorias() {
@@ -91,7 +177,9 @@ async function carregarProdutos() {
     return;
   }
 
-  if (data.length === 0) {
+  produtosCache = data || [];
+
+  if (produtosCache.length === 0) {
     tabelaProdutos.innerHTML = `
       <tr>
         <td colspan="8">Nenhum produto cadastrado.</td>
@@ -100,47 +188,7 @@ async function carregarProdutos() {
     return;
   }
 
-  tabelaProdutos.innerHTML = "";
-
-  data.forEach(function(produto) {
-    const linha = document.createElement("tr");
-
-    linha.innerHTML = `
-      <td>${produto.produtoid}</td>
-      <td>${produto.categorias?.descricao ?? ""}</td>
-      <td>${produto.descricao}</td>
-      <td>${produto.observacao ?? ""}</td>
-      <td>R$ ${Number(produto.valor_venda).toFixed(2)}</td>
-      <td>${produto.data_cadastro}</td>
-      <td>${formatarStatus(produto.status)}</td>
-      <td class="coluna-acoes"></td>
-    `;
-
-    const botaoEditar = document.createElement("button");
-
-    botaoEditar.textContent = "Editar";
-    botaoEditar.className = "btn-editar";
-    botaoEditar.type = "button";
-
-    botaoEditar.addEventListener("click", function() {
-      prepararEdicao(produto);
-    });
-
-    const botaoExcluir = document.createElement("button");
-
-    botaoExcluir.textContent = "Excluir";
-    botaoExcluir.className = "btn-excluir";
-    botaoExcluir.type = "button";
-
-    botaoExcluir.addEventListener("click", function() {
-      excluirProduto(produto);
-    });
-
-    linha.querySelector(".coluna-acoes").appendChild(botaoEditar);
-    linha.querySelector(".coluna-acoes").appendChild(botaoExcluir);
-
-    tabelaProdutos.appendChild(linha);
-  });
+  renderizarProdutos(produtosCache);
 }
 
 function prepararEdicao(produto) {
@@ -295,6 +343,26 @@ btnCancelarEdicao.addEventListener(
     cancelarEdicao();
   }
 );
+
+if (btnPesquisarProduto) {
+  btnPesquisarProduto.addEventListener("click", aplicarFiltroProdutos);
+}
+
+if (btnLimparPesquisaProduto) {
+  btnLimparPesquisaProduto.addEventListener("click", function() {
+    barraPesquisaProduto.value = "";
+    aplicarFiltroProdutos();
+  });
+}
+
+if (barraPesquisaProduto) {
+  barraPesquisaProduto.addEventListener("keydown", function(evento) {
+    if (evento.key === "Enter") {
+      evento.preventDefault();
+      aplicarFiltroProdutos();
+    }
+  });
+}
 
 carregarCategorias();
 carregarProdutos();

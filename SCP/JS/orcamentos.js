@@ -6,9 +6,6 @@ const supabaseClient = supabase.createClient(
   SUPABASE_ANON_KEY
 );
 
-// =====================
-// ELEMENTOS
-// =====================
 const formOrcamento = document.getElementById("formOrcamento");
 
 const orcamentoIdInput = document.getElementById("orcamentoId");
@@ -23,22 +20,95 @@ const valorTotalOrcamento = document.getElementById("valorTotalOrcamento");
 
 const btnSalvarOrcamento = document.getElementById("btnSalvarOrcamento");
 const btnCancelarEdicao = document.getElementById("btnCancelarEdicao");
+const barraPesquisaOrcamento = document.getElementById("barraPesquisaOrcamento");
+const btnPesquisarOrcamento = document.getElementById("btnPesquisarOrcamento");
+const btnLimparPesquisaOrcamento = document.getElementById("btnLimparPesquisaOrcamento");
 
 const mensagem = document.getElementById("mensagem");
 
 let orcamentoEditando = null;
+let orcamentosCache = [];
 
-// =====================
-// MENSAGEM
-// =====================
 function mostrarMensagem(texto, tipo) {
   mensagem.textContent = texto;
   mensagem.className = "mensagem " + tipo;
 }
 
-// =====================
-// CARREGAR CLIENTES
-// =====================
+function normalizarTexto(texto) {
+  return String(texto ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function renderizarOrcamentos(lista) {
+  tabelaOrcamentos.innerHTML = "";
+
+  if (lista.length === 0) {
+    tabelaOrcamentos.innerHTML = `
+      <tr>
+        <td colspan="6">Nenhum orçamento encontrado.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  lista.forEach((o) => {
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${o.orcamentoid}</td>
+      <td>${o.clientes?.nome_cliente ?? ""}</td>
+      <td>${o.data_orcamento}</td>
+      <td>${o.data_validade}</td>
+      <td>R$ ${Number(o.valor_total).toFixed(2)}</td>
+      <td></td>
+    `;
+
+    const btnVisualizar = document.createElement("button");
+    btnVisualizar.textContent = "Visualizar";
+    btnVisualizar.className = "btn-visualizar";
+    btnVisualizar.onclick = () => abrirVisualizacao(o);
+
+    const btnEditar = document.createElement("button");
+    btnEditar.textContent = "Editar";
+    btnEditar.className = "btn-editar";
+    btnEditar.onclick = () => prepararEdicao(o);
+
+    const btnExcluir = document.createElement("button");
+    btnExcluir.textContent = "Excluir";
+    btnExcluir.className = "btn-excluir";
+    btnExcluir.onclick = () => excluirOrcamento(o);
+
+    tr.querySelector("td:last-child").appendChild(btnVisualizar);
+    tr.querySelector("td:last-child").appendChild(btnEditar);
+    tr.querySelector("td:last-child").appendChild(btnExcluir);
+
+    tabelaOrcamentos.appendChild(tr);
+  });
+}
+
+function aplicarFiltroOrcamentos() {
+  const termo = normalizarTexto(barraPesquisaOrcamento?.value || "");
+
+  if (!termo) {
+    renderizarOrcamentos(orcamentosCache);
+    return;
+  }
+
+  const filtrados = orcamentosCache.filter((orcamento) => {
+    return [
+      orcamento.orcamentoid,
+      orcamento.clientes?.nome_cliente,
+      orcamento.data_orcamento,
+      orcamento.data_validade,
+      Number(orcamento.valor_total).toFixed(2)
+    ].some((valor) => normalizarTexto(valor).includes(termo));
+  });
+
+  renderizarOrcamentos(filtrados);
+}
+
 async function carregarClientes() {
   const { data, error } = await supabaseClient
     .from("clientes")
@@ -61,9 +131,6 @@ async function carregarClientes() {
   });
 }
 
-// =====================
-// CARREGAR PRODUTOS (para selects)
-// =====================
 let produtosCache = [];
 
 async function carregarProdutos() {
@@ -79,9 +146,6 @@ async function carregarProdutos() {
   produtosCache = data;
 }
 
-// =====================
-// CRIAR LINHA ITEM
-// =====================
 function criarLinhaItem(produtoSelecionado = null) {
   const tr = document.createElement("tr");
 
@@ -111,7 +175,6 @@ function criarLinhaItem(produtoSelecionado = null) {
   const selectProduto = tr.querySelector(".produto-item");
   const qtdInput = tr.querySelector(".quantidade-item");
 
-  // preencher produtos
   produtosCache.forEach((p) => {
     const opt = document.createElement("option");
     opt.value = p.produtoid;
@@ -142,9 +205,6 @@ function criarLinhaItem(produtoSelecionado = null) {
   return tr;
 }
 
-// =====================
-// ATUALIZAR ITEM
-// =====================
 function atualizarLinhaItem(tr) {
   const select = tr.querySelector(".produto-item");
   const qtd = tr.querySelector(".quantidade-item");
@@ -172,9 +232,6 @@ function atualizarLinhaItem(tr) {
   calcularTotalOrcamento();
 }
 
-// =====================
-// TOTAL ORÇAMENTO
-// =====================
 function calcularTotalOrcamento() {
   let total = 0;
 
@@ -189,16 +246,10 @@ function calcularTotalOrcamento() {
     "R$ " + total.toFixed(2);
 }
 
-// =====================
-// ADICIONAR LINHA
-// =====================
 function adicionarLinha() {
   criarLinhaItem();
 }
 
-// =====================
-// CARREGAR ORÇAMENTOS
-// =====================
 async function carregarOrcamentos() {
   const { data, error } = await supabaseClient
     .from("orcamentos")
@@ -220,49 +271,11 @@ async function carregarOrcamentos() {
     return;
   }
 
-  tabelaOrcamentos.innerHTML = "";
+  orcamentosCache = data || [];
 
-  data.forEach((o) => {
-    const tr = document.createElement("tr");
-
-    tr.innerHTML = `
-      <td>${o.orcamentoid}</td>
-      <td>${o.clientes?.nome_cliente ?? ""}</td>
-      <td>${o.data_orcamento}</td>
-      <td>${o.data_validade}</td>
-      <td>R$ ${Number(o.valor_total).toFixed(2)}</td>
-      <td></td>
-    `;
-
-    const btnVisualizar = document.createElement("button");
-    btnVisualizar.textContent = "Visualizar";
-    btnVisualizar.className = "btn-visualizar";
-
-    btnVisualizar.onclick = () => abrirVisualizacao(o);
-
-    const btnEditar = document.createElement("button");
-    btnEditar.textContent = "Editar";
-    btnEditar.className = "btn-editar";
-
-    btnEditar.onclick = () => prepararEdicao(o);
-
-    const btnExcluir = document.createElement("button");
-    btnExcluir.textContent = "Excluir";
-    btnExcluir.className = "btn-excluir";
-
-    btnExcluir.onclick = () => excluirOrcamento(o);
-
-    tr.querySelector("td:last-child").appendChild(btnVisualizar);
-    tr.querySelector("td:last-child").appendChild(btnEditar);
-    tr.querySelector("td:last-child").appendChild(btnExcluir);
-
-    tabelaOrcamentos.appendChild(tr);
-  });
+  renderizarOrcamentos(orcamentosCache);
 }
 
-// =====================
-// SALVAR ORÇAMENTO
-// =====================
 async function salvarOrcamento() {
   const dados = {
     clienteid: clienteIdInput.value,
@@ -275,7 +288,6 @@ async function salvarOrcamento() {
 
   let orcamentoId = orcamentoIdInput.value;
 
-  // INSERT
   if (!orcamentoEditando) {
     const { data, error } = await supabaseClient
       .from("orcamentos")
@@ -289,7 +301,7 @@ async function salvarOrcamento() {
 
     orcamentoId = data[0].orcamentoid;
   }
-  // UPDATE
+
   else {
     await supabaseClient
       .from("orcamentos")
@@ -297,7 +309,6 @@ async function salvarOrcamento() {
       .eq("orcamentoid", orcamentoEditando);
   }
 
-  // apagar itens antigos (se edição)
   if (orcamentoEditando) {
     await supabaseClient
       .from("itens_orcamento")
@@ -305,7 +316,6 @@ async function salvarOrcamento() {
       .eq("orcamentoid", orcamentoEditando);
   }
 
-  // inserir itens
   const linhas = document.querySelectorAll("#tabelaItens tr");
 
   for (const tr of linhas) {
@@ -336,9 +346,6 @@ async function salvarOrcamento() {
   carregarOrcamentos();
 }
 
-// =====================
-// EDITAR
-// =====================
 async function prepararEdicao(orcamento) {
   orcamentoEditando = orcamento.orcamentoid;
 
@@ -354,11 +361,10 @@ async function prepararEdicao(orcamento) {
     .select("*")
     .eq("orcamentoid", orcamento.orcamentoid);
 
-  // Se não há itens, criar uma linha vazia
   if (data.length === 0) {
     criarLinhaItem();
   } else {
-    // Carregar apenas os itens do orçamento
+  
     data.forEach((item) => {
       const tr = criarLinhaItem();
       tr.querySelector(".produto-item").value = item.produtoid;
@@ -370,9 +376,6 @@ async function prepararEdicao(orcamento) {
   btnCancelarEdicao.style.display = "inline-block";
 }
 
-// =====================
-// CANCELAR
-// =====================
 function cancelarEdicao() {
   orcamentoEditando = null;
 
@@ -384,17 +387,11 @@ function cancelarEdicao() {
   valorTotalOrcamento.textContent = "R$ 0,00";
 }
 
-// =====================
-// VISUALIZAR
-// =====================
 function abrirVisualizacao(orcamento) {
   sessionStorage.setItem("orcamentoSelecionado", String(orcamento.orcamentoid));
   window.location.href = "visualizacao_orcamento.html";
 }
 
-// =====================
-// EXCLUIR
-// =====================
 async function excluirOrcamento(o) {
   if (!confirm("Excluir orçamento?")) return;
 
@@ -411,16 +408,30 @@ async function excluirOrcamento(o) {
   carregarOrcamentos();
 }
 
-// =====================
-// EVENTS
-// =====================
 btnSalvarOrcamento.addEventListener("click", salvarOrcamento);
 btnCancelarEdicao.addEventListener("click", cancelarEdicao);
 
-// =====================
-// INIT
-// =====================
-tabelaItens.innerHTML = ""; // Limpar linha inicial do HTML
+if (btnPesquisarOrcamento) {
+  btnPesquisarOrcamento.addEventListener("click", aplicarFiltroOrcamentos);
+}
+
+if (btnLimparPesquisaOrcamento) {
+  btnLimparPesquisaOrcamento.addEventListener("click", function() {
+    barraPesquisaOrcamento.value = "";
+    aplicarFiltroOrcamentos();
+  });
+}
+
+if (barraPesquisaOrcamento) {
+  barraPesquisaOrcamento.addEventListener("keydown", function(evento) {
+    if (evento.key === "Enter") {
+      evento.preventDefault();
+      aplicarFiltroOrcamentos();
+    }
+  });
+}
+
+tabelaItens.innerHTML = "";
 carregarClientes();
 carregarProdutos().then(() => {
   criarLinhaItem();

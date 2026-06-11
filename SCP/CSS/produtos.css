@@ -76,12 +76,21 @@
       background: #ddd;
     }
 
+    /* Coluna de ações da tabela */
+    .coluna-acoes {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      white-space: nowrap;
+    }
+
     /* Botão editar que aparece dentro da tabela */
     .btn-editar {
       background: #ffc107;
       color: #333;
       padding: 6px 10px;
-      margin-right: 5px;
+      margin-right: 0;
     }
 
     /* Botão excluir que aparece dentro da tabela */

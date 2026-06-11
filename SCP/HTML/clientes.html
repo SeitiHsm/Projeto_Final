@@ -34,26 +34,20 @@
         <div class="profile-chip" aria-label="Perfil do usuário">
           <span class="profile-icon">👤</span>
           <span class="profile-text">
-            <strong>Nome do usuário</strong>
-            <small>Perfil</small>
+            <strong id="nomeUsuarioLogado">Nome do usuário</strong>
+            <small id="emailUsuarioLogado">Perfil</small>
           </span>
         </div>
       </div>
     </div>
   </nav>
 
-  <!-- Conteúdo principal da página -->
   <main class="homepage-main container">
 
-    <!-- Título da tela -->
     <h1>Cadastro de Cliente</h1>
 
-    <!-- Formulário usado tanto para cadastrar quanto para editar -->
     <form id="formCliente" class="form-cliente">
 
-      <!-- Campo CLIENTEID.
-           No banco ele é SERIAL, então é gerado automaticamente.
-           Por isso o campo fica readonly. -->
       <div class="campo">
         <label for="clienteId">Código</label>
         <input
@@ -64,10 +58,6 @@
         >
       </div>
 
-      <!-- Campo TIPO_CLIENTE.
-           Na tabela é CHAR(1), então salvamos apenas uma letra:
-           F para Pessoa Física
-           J para Pessoa Jurídica -->
       <div class="campo">
         <label for="tipoCliente">Tipo de Cliente</label>
         <select id="tipoCliente" required>
@@ -77,8 +67,6 @@
         </select>
       </div>
 
-      <!-- Campo CPF_CNPJ_CLIENTE.
-           Na tabela é VARCHAR(18), então usamos maxlength="18". -->
       <div class="campo">
         <label for="cpfCnpjCliente">CPF / CNPJ</label>
         <input
@@ -90,8 +78,6 @@
         >
       </div>
 
-      <!-- Campo NOME_CLIENTE.
-           Na tabela é VARCHAR(100), então usamos maxlength="100". -->
       <div class="campo nome">
         <label for="nomeCliente">Nome do Cliente</label>
         <input
@@ -103,16 +89,12 @@
         >
       </div>
 
-      <!-- Botões do formulário -->
       <div class="acoes">
 
-        <!-- Limpa os campos do formulário -->
         <button type="reset" class="btn-limpar">
           Limpar
         </button>
 
-        <!-- Cancela a edição e volta para o modo cadastro.
-             Esse botão começa escondido. -->
         <button
           type="button"
           id="btnCancelarEdicao"
@@ -121,26 +103,30 @@
           Cancelar edição
         </button>
 
-        <!-- Botão principal.
-             Quando estiver cadastrando, aparece como "Salvar".
-             Quando estiver editando, o JavaScript muda para "Atualizar". -->
         <button type="submit" id="btnSalvar" class="btn-salvar">
           Salvar
         </button>
       </div>
     </form>
 
-    <!-- Aqui aparecerão mensagens como:
-         "Cliente salvo com sucesso"
-         "Erro ao salvar cliente"
-         "Cliente excluído com sucesso" -->
     <p id="mensagem" class="mensagem"></p>
 
     <div class="topo-lista">
       <h2>Clientes Cadastrados</h2>
     </div>
 
-    <!-- Tabela onde os clientes serão exibidos -->
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+      <input
+        type="search"
+        id="barraPesquisaCliente"
+        class="form-control"
+        placeholder="Pesquise por código, tipo, CPF/CNPJ ou nome"
+        aria-label="Pesquisar clientes"
+      >
+      <button type="button" id="btnPesquisarCliente" class="btn btn-primary">Pesquisar</button>
+      <button type="button" id="btnLimparPesquisaCliente" class="btn btn-outline-secondary">Limpar</button>
+    </div>
+
     <table>
       <thead>
         <tr>
@@ -152,8 +138,6 @@
         </tr>
       </thead>
 
-      <!-- O tbody começa com uma mensagem.
-           Depois o JavaScript substitui esse conteúdo pelos dados do Supabase. -->
       <tbody id="tabelaClientes">
         <tr>
           <td colspan="5">Carregando clientes...</td>
@@ -164,6 +148,7 @@
     
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="..//JS/clientes.js"></script>
+  <script src="../JS/homepage.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

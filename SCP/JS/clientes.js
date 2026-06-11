@@ -1,39 +1,10 @@
-/*
-  ============================================
-  CONFIGURAÇÃO DO SUPABASE
-  ============================================
-
-  Aqui configuramos a conexão do front-end com o Supabase.
-
-  Importante:
-  - SUPABASE_URL é a URL do seu projeto.
-  - SUPABASE_ANON_KEY é a chave pública.
-  - Nunca use service_role key no front-end.
-*/
-
 const SUPABASE_URL = "https://spfrgjhhisvwqvkdgfll.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_2-oeiECzfEJe5iKRjmc9Aw_nAq7Pzbp";
 
-
-/*
-  Cria o cliente de conexão com o Supabase.
-
-  A variável "supabase" vem da biblioteca que carregamos no HTML:
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-*/
 const supabaseClient = supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
-
-/*
-  ============================================
-  PEGANDO ELEMENTOS DO HTML
-  ============================================
-
-  Usamos document.getElementById para acessar elementos da tela.
-  Assim conseguimos ler valores, alterar textos e criar ações.
-*/
 
 const formCliente = document.getElementById("formCliente");
 const tabelaClientes = document.getElementById("tabelaClientes");
@@ -46,37 +17,107 @@ const nomeClienteInput = document.getElementById("nomeCliente");
 
 const btnSalvar = document.getElementById("btnSalvar");
 const btnCancelarEdicao = document.getElementById("btnCancelarEdicao");
+const barraPesquisaCliente = document.getElementById("barraPesquisaCliente");
+const btnPesquisarCliente = document.getElementById("btnPesquisarCliente");
+const btnLimparPesquisaCliente = document.getElementById("btnLimparPesquisaCliente");
 
-/*
-  ============================================
-  FUNÇÃO PARA MOSTRAR MENSAGEM NA TELA
-  ============================================
-
-  Essa função recebe:
-  - texto: mensagem que será exibida.
-  - tipo: classe CSS aplicada na mensagem.
-
-  Exemplo:
-  mostrarMensagem("Cliente salvo com sucesso!", "sucesso");
-  mostrarMensagem("Erro ao salvar cliente.", "erro");
-*/
+let clientesCache = [];
 
 function mostrarMensagem(texto, tipo) {
   mensagem.textContent = texto;
   mensagem.className = "mensagem " + tipo;
 }
 
-/*
-  ============================================
-  FUNÇÃO PARA FORMATAR O TIPO DO CLIENTE
-  ============================================
+function normalizarTexto(texto) {
+  return String(texto ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
 
-  No banco, o tipo é salvo como:
-  F = Pessoa Física
-  J = Pessoa Jurídica
+function normalizarChave(texto) {
+  return normalizarTexto(texto)
+    .replace(/[^a-z0-9]/g, "");
+}
 
-  Essa função transforma o valor salvo no banco em um texto amigável.
-*/
+function clienteJaExiste(cpfCnpjCliente, clienteIdIgnorado = null) {
+  const termo = normalizarChave(cpfCnpjCliente);
+
+  return clientesCache.some(function(cliente) {
+    return (
+      cliente.clienteid !== clienteIdIgnorado &&
+      normalizarChave(cliente.cpf_cnpj_cliente) === termo
+    );
+  });
+}
+
+function renderizarClientes(lista) {
+  tabelaClientes.innerHTML = "";
+
+  if (lista.length === 0) {
+    tabelaClientes.innerHTML = `
+      <tr>
+        <td colspan="5">Nenhum cliente encontrado.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  lista.forEach(function(cliente) {
+    const linha = document.createElement("tr");
+
+    linha.innerHTML = `
+      <td>${cliente.clienteid}</td>
+      <td>${formatarTipoCliente(cliente.tipo_cliente)}</td>
+      <td>${cliente.cpf_cnpj_cliente}</td>
+      <td>${cliente.nome_cliente}</td>
+      <td class="coluna-acoes"></td>
+    `;
+
+    const botaoEditar = document.createElement("button");
+    botaoEditar.textContent = "Editar";
+    botaoEditar.className = "btn-editar";
+    botaoEditar.type = "button";
+    botaoEditar.addEventListener("click", function() {
+      prepararEdicao(cliente);
+    });
+
+    const botaoExcluir = document.createElement("button");
+    botaoExcluir.textContent = "Excluir";
+    botaoExcluir.className = "btn-excluir";
+    botaoExcluir.type = "button";
+    botaoExcluir.addEventListener("click", function() {
+      excluirCliente(cliente);
+    });
+
+    linha.querySelector(".coluna-acoes").appendChild(botaoEditar);
+    linha.querySelector(".coluna-acoes").appendChild(botaoExcluir);
+
+    tabelaClientes.appendChild(linha);
+  });
+}
+
+function aplicarFiltroClientes() {
+  const termo = normalizarTexto(barraPesquisaCliente?.value || "");
+
+  if (!termo) {
+    renderizarClientes(clientesCache);
+    return;
+  }
+
+  const filtrados = clientesCache.filter(function(cliente) {
+    return [
+      cliente.clienteid,
+      formatarTipoCliente(cliente.tipo_cliente),
+      cliente.cpf_cnpj_cliente,
+      cliente.nome_cliente
+    ].some(function(valor) {
+      return normalizarTexto(valor).includes(termo);
+    });
+  });
+
+  renderizarClientes(filtrados);
+}
 
 function formatarTipoCliente(tipoCliente) {
   if (tipoCliente === "F") {
@@ -90,46 +131,13 @@ function formatarTipoCliente(tipoCliente) {
   return "Não informado";
 }
 
-/*
-  ============================================
-  CARREGAR CLIENTES
-  ============================================
-
-  Essa função busca os clientes no Supabase e monta as linhas da tabela.
-
-  Observação importante:
-  A tabela foi criada assim:
-
-  CREATE TABLE CLIENTE (...)
-
-  Como não foram usadas aspas no nome da tabela,
-  no PostgreSQL o nome normalmente fica em minúsculo: cliente.
-
-  Por isso usamos:
-  .from("cliente")
-*/
-
 async function carregarClientes() {
-  /*
-    Faz um SELECT na tabela cliente.
 
-    Estamos buscando as colunas:
-    - clienteid
-    - tipo_cliente
-    - cpf_cnpj_cliente
-    - nome_cliente
-
-    E ordenando pelo clienteid em ordem crescente.
-  */
   const { data, error } = await supabaseClient
     .from("clientes")
     .select("clienteid, tipo_cliente, cpf_cnpj_cliente, nome_cliente")
     .order("clienteid", { ascending: true });
 
-  /*
-    Se der erro na consulta, mostramos uma mensagem na tabela
-    e também uma mensagem de erro acima da listagem.
-  */
   if (error) {
     tabelaClientes.innerHTML = `
       <tr>
@@ -141,11 +149,9 @@ async function carregarClientes() {
     return;
   }
 
-  /*
-    Se a consulta funcionar, mas não houver nenhum cliente,
-    mostramos uma mensagem dizendo que não há registros.
-  */
-  if (data.length === 0) {
+  clientesCache = data || [];
+
+  if (clientesCache.length === 0) {
     tabelaClientes.innerHTML = `
       <tr>
         <td colspan="5">Nenhum cliente cadastrado.</td>
@@ -154,269 +160,87 @@ async function carregarClientes() {
     return;
   }
 
-  /*
-    Limpamos o corpo da tabela antes de preencher.
-    Isso evita duplicar linhas quando recarregamos os clientes.
-  */
-  tabelaClientes.innerHTML = "";
-
-  /*
-    Percorremos a lista de clientes retornada pelo Supabase.
-
-    Para cada cliente, criamos uma linha <tr>.
-  */
-  data.forEach(function(cliente) {
-    const linha = document.createElement("tr");
-
-    /*
-      Criamos as colunas principais da linha.
-
-      A última coluna recebe a classe "coluna-acoes".
-      Nessa coluna colocaremos os botões Editar e Excluir.
-    */
-    linha.innerHTML = `
-      <td>${cliente.clienteid}</td>
-      <td>${formatarTipoCliente(cliente.tipo_cliente)}</td>
-      <td>${cliente.cpf_cnpj_cliente}</td>
-      <td>${cliente.nome_cliente}</td>
-      <td class="coluna-acoes"></td>
-    `;
-
-    /*
-      ============================================
-      BOTÃO EDITAR
-      ============================================
-    */
-
-    const botaoEditar = document.createElement("button");
-
-    botaoEditar.textContent = "Editar";
-    botaoEditar.className = "btn-editar";
-    botaoEditar.type = "button";
-
-    /*
-      Quando clicar no botão Editar,
-      chamamos a função prepararEdicao
-      passando o cliente da linha atual.
-    */
-    botaoEditar.addEventListener("click", function() {
-      prepararEdicao(cliente);
-    });
-
-    /*
-      ============================================
-      BOTÃO EXCLUIR
-      ============================================
-    */
-
-    const botaoExcluir = document.createElement("button");
-
-    botaoExcluir.textContent = "Excluir";
-    botaoExcluir.className = "btn-excluir";
-    botaoExcluir.type = "button";
-
-    /*
-      Quando clicar no botão Excluir,
-      chamamos a função excluirCliente
-      passando o cliente da linha atual.
-    */
-    botaoExcluir.addEventListener("click", function() {
-      excluirCliente(cliente);
-    });
-
-    /*
-      Adicionamos os botões dentro da coluna Ações.
-    */
-    linha.querySelector(".coluna-acoes").appendChild(botaoEditar);
-    linha.querySelector(".coluna-acoes").appendChild(botaoExcluir);
-
-    /*
-      Adicionamos a linha pronta dentro do tbody da tabela.
-    */
-    tabelaClientes.appendChild(linha);
-  });
+  renderizarClientes(clientesCache);
 }
 
-/*
-  ============================================
-  PREPARAR EDIÇÃO
-  ============================================
-
-  Essa função é chamada quando o usuário clica no botão Editar.
-
-  Ela pega os dados do cliente selecionado e joga para dentro do formulário.
-*/
-
 function prepararEdicao(cliente) {
-  /*
-    Preenche o campo código.
-    Esse campo é importante porque usaremos o ID para saber qual cliente atualizar.
-  */
+
   clienteIdInput.value = cliente.clienteid;
 
-  /*
-    Preenche os demais campos com os dados do cliente.
-  */
   tipoClienteInput.value = cliente.tipo_cliente;
   cpfCnpjClienteInput.value = cliente.cpf_cnpj_cliente;
   nomeClienteInput.value = cliente.nome_cliente;
 
-  /*
-    Neste exemplo, vamos permitir editar apenas o nome.
-
-    Por isso:
-    - bloqueamos o tipo;
-    - bloqueamos o CPF/CNPJ.
-  */
   tipoClienteInput.disabled = true;
   cpfCnpjClienteInput.readOnly = true;
 
-  /*
-    Mudamos o texto do botão principal para "Atualizar".
-  */
   btnSalvar.textContent = "Atualizar";
 
-  /*
-    Mostramos o botão Cancelar edição.
-  */
   btnCancelarEdicao.style.display = "inline-block";
 
-  /*
-    Mostramos uma mensagem informando que o usuário está editando.
-  */
   mostrarMensagem("Editando o cliente: " + cliente.nome_cliente, "sucesso");
 }
 
-/*
-  ============================================
-  CANCELAR EDIÇÃO
-  ============================================
-
-  Essa função limpa o formulário e volta para o modo de cadastro.
-*/
-
 function cancelarEdicao() {
-  /*
-    Limpa os campos do formulário.
-  */
+
   formCliente.reset();
 
-  /*
-    Garante que o ID fique vazio.
-    Se o ID estiver vazio, o sistema entende que é um novo cadastro.
-  */
   clienteIdInput.value = "";
 
-  /*
-    Libera os campos que estavam bloqueados durante a edição.
-  */
   tipoClienteInput.disabled = false;
   cpfCnpjClienteInput.readOnly = false;
 
-  /*
-    Volta o botão principal para "Salvar".
-  */
   btnSalvar.textContent = "Salvar";
 
-  /*
-    Esconde novamente o botão Cancelar edição.
-  */
   btnCancelarEdicao.style.display = "none";
 
-  /*
-    Limpa a área de mensagem.
-  */
   mensagem.textContent = "";
   mensagem.className = "mensagem";
 }
 
-/*
-  ============================================
-  SALVAR CLIENTE
-  ============================================
-
-  Essa função cadastra um novo cliente no Supabase.
-
-  Ela será chamada quando o campo clienteId estiver vazio.
-*/
-
 async function salvarCliente() {
-  /*
-    Pegamos os valores digitados no formulário.
-  */
   const tipoCliente = tipoClienteInput.value;
-  const cpfCnpjCliente = cpfCnpjClienteInput.value;
-  const nomeCliente = nomeClienteInput.value;
+  const cpfCnpjCliente = cpfCnpjClienteInput.value.trim();
+  const nomeCliente = nomeClienteInput.value.trim();
 
-  /*
-    Montamos o objeto que será enviado para o Supabase.
+  if (!tipoCliente || !cpfCnpjCliente || !nomeCliente) {
+    mostrarMensagem("Preencha todos os campos obrigatórios.", "erro");
+    return;
+  }
 
-    As propriedades precisam ter o mesmo nome das colunas da tabela.
-  */
+  if (clienteJaExiste(cpfCnpjCliente)) {
+    mostrarMensagem("Já existe um cliente cadastrado com esse CPF/CNPJ.", "erro");
+    return;
+  }
+
   const novoCliente = {
     tipo_cliente: tipoCliente,
     cpf_cnpj_cliente: cpfCnpjCliente,
     nome_cliente: nomeCliente
   };
 
-  /*
-    Insere o novo cliente na tabela cliente.
-  */
   const { error } = await supabaseClient
     .from("clientes")
     .insert(novoCliente);
 
-  /*
-    Se houver erro, mostramos a mensagem e paramos a função.
-  */
   if (error) {
     mostrarMensagem("Erro ao salvar cliente: " + error.message, "erro");
     return;
   }
 
-  /*
-    Se deu certo, mostramos mensagem de sucesso.
-  */
   mostrarMensagem("Cliente salvo com sucesso!", "sucesso");
 
-  /*
-    Limpamos o formulário.
-  */
   formCliente.reset();
 
-  /*
-    Recarregamos a listagem para mostrar o novo cliente na tabela.
-  */
   carregarClientes();
 }
 
-/*
-  ============================================
-  ATUALIZAR NOME DO CLIENTE
-  ============================================
-
-  Essa função atualiza apenas o nome do cliente.
-
-  Ela será chamada quando o campo clienteId estiver preenchido.
-*/
-
 async function atualizarNomeCliente() {
-  /*
-    Pegamos o ID do cliente que está sendo editado.
-  */
+
   const clienteId = clienteIdInput.value;
 
-  /*
-    Pegamos o novo nome digitado.
-  */
   const nomeCliente = nomeClienteInput.value;
 
-  /*
-    Atualizamos somente a coluna nome_cliente.
-
-    O filtro .eq("clienteid", clienteId) é essencial.
-    Ele informa qual registro será atualizado.
-  */
   const { error } = await supabaseClient
     .from("clientes")
     .update({
@@ -424,122 +248,52 @@ async function atualizarNomeCliente() {
     })
     .eq("clienteid", clienteId);
 
-  /*
-    Se houver erro, mostramos a mensagem e paramos.
-  */
   if (error) {
     mostrarMensagem("Erro ao atualizar cliente: " + error.message, "erro");
     return;
   }
 
-  /*
-    Se deu certo, mostramos mensagem de sucesso.
-  */
   mostrarMensagem("Nome atualizado com sucesso!", "sucesso");
 
-  /*
-    Saímos do modo edição.
-  */
   cancelarEdicao();
 
-  /*
-    Recarregamos a tabela para mostrar o nome atualizado.
-  */
   carregarClientes();
 }
 
-/*
-  ============================================
-  EXCLUIR CLIENTE
-  ============================================
-
-  Essa função exclui um cliente do Supabase.
-
-  Ela recebe o objeto cliente inteiro para poder usar:
-  - cliente.clienteid
-  - cliente.nome_cliente
-*/
-
 async function excluirCliente(cliente) {
-  /*
-    Antes de excluir, pedimos confirmação.
-
-    O confirm retorna:
-    - true se o usuário clicar em OK;
-    - false se o usuário clicar em Cancelar.
-  */
+  
   const confirmou = confirm(
     "Tem certeza que deseja excluir o cliente " + cliente.nome_cliente + "?"
   );
 
-  /*
-    Se o usuário cancelar, paramos a função.
-  */
   if (!confirmou) {
     return;
   }
 
-  /*
-    Executa o DELETE na tabela cliente.
-
-    O filtro .eq("clienteid", cliente.clienteid) garante que apenas
-    o cliente selecionado será excluído.
-  */
   const { error } = await supabaseClient
     .from("clientes")
     .delete()
     .eq("clienteid", cliente.clienteid);
 
-  /*
-    Se houver erro, mostramos uma mensagem.
-  */
   if (error) {
     mostrarMensagem("Erro ao excluir cliente: " + error.message, "erro");
     return;
   }
 
-  /*
-    Se o cliente excluído era o mesmo que estava sendo editado,
-    cancelamos a edição para limpar o formulário.
-  */
   if (clienteIdInput.value == cliente.clienteid) {
     cancelarEdicao();
   }
 
-  /*
-    Mostra mensagem de sucesso.
-  */
+  
   mostrarMensagem("Cliente excluído com sucesso!", "sucesso");
 
-  /*
-    Recarrega a tabela para remover visualmente o cliente excluído.
-  */
   carregarClientes();
 }
 
-/*
-  ============================================
-  EVENTO DE ENVIO DO FORMULÁRIO
-  ============================================
-
-  Este evento acontece quando o usuário clica em Salvar ou Atualizar.
-*/
-
 formCliente.addEventListener("submit", async function(evento) {
-  /*
-    Impede a página de recarregar ao enviar o formulário.
-  */
+ 
   evento.preventDefault();
 
-  /*
-    Verificamos se o campo clienteId está preenchido.
-
-    Se estiver vazio:
-    - é um cadastro novo.
-
-    Se estiver preenchido:
-    - é uma edição.
-  */
   const estaEditando = clienteIdInput.value !== "";
 
   if (estaEditando) {
@@ -549,26 +303,28 @@ formCliente.addEventListener("submit", async function(evento) {
   }
 });
 
-/*
-  ============================================
-  EVENTO DO BOTÃO CANCELAR EDIÇÃO
-  ============================================
-
-  Quando o usuário clicar em "Cancelar edição",
-  chamamos a função cancelarEdicao.
-*/
-
 btnCancelarEdicao.addEventListener("click", function() {
   cancelarEdicao();
 });
 
-/*
-  ============================================
-  CARREGAMENTO INICIAL DA PÁGINA
-  ============================================
+if (btnPesquisarCliente) {
+  btnPesquisarCliente.addEventListener("click", aplicarFiltroClientes);
+}
 
-  Assim que o arquivo JavaScript é carregado,
-  buscamos os clientes no Supabase.
-*/
+if (btnLimparPesquisaCliente) {
+  btnLimparPesquisaCliente.addEventListener("click", function() {
+    barraPesquisaCliente.value = "";
+    aplicarFiltroClientes();
+  });
+}
+
+if (barraPesquisaCliente) {
+  barraPesquisaCliente.addEventListener("keydown", function(evento) {
+    if (evento.key === "Enter") {
+      evento.preventDefault();
+      aplicarFiltroClientes();
+    }
+  });
+}
 
 carregarClientes();

@@ -39,8 +39,8 @@
         <div class="profile-chip" aria-label="Perfil do usuário">
           <span class="profile-icon">👤</span>
           <span class="profile-text">
-            <strong>Nome do usuário</strong>
-            <small>Perfil</small>
+            <strong id="nomeUsuarioLogado">Nome do usuário</strong>
+            <small id="emailUsuarioLogado">Perfil</small>
           </span>
         </div>
       </div>
@@ -126,6 +126,18 @@
       <h2>Produtos Cadastrados</h2>
     </div>
 
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+      <input
+        type="search"
+        id="barraPesquisaProduto"
+        class="form-control"
+        placeholder="Pesquise por código, categoria, descrição, status ou valor"
+        aria-label="Pesquisar produtos"
+      >
+      <button type="button" id="btnPesquisarProduto" class="btn btn-primary">Pesquisar</button>
+      <button type="button" id="btnLimparPesquisaProduto" class="btn btn-outline-secondary">Limpar</button>
+    </div>
+
     <table>
 
       <thead>
@@ -155,6 +167,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../JS/produtos.js"></script>
+  <script src="../JS/homepage.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
